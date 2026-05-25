@@ -17,7 +17,10 @@
         <div class="progress-bar-wrapper">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
-        <span class="progress-label" id="progress-label">Question 1 of 5</span>
+        <div class="quiz-meta">
+          <span class="progress-label" id="progress-label">Question 1 of 8</span>
+          <span class="score-display" id="score-display">0 pts</span>
+        </div>
 
         <section class="question-card" id="question-card">
           <div class="question-meta">
@@ -29,12 +32,22 @@
 
         <div class="answers-grid" id="answers-grid"></div>
 
+        <div class="feedback-banner hidden" id="feedback-banner">
+          <span class="feedback-icon" id="feedback-icon"></span>
+          <div class="feedback-content">
+            <span class="feedback-verdict" id="feedback-verdict"></span>
+            <span class="feedback-points" id="feedback-points"></span>
+          </div>
+          <span class="streak-badge hidden" id="streak-badge"></span>
+        </div>
+
         <div class="explanation-panel hidden" id="explanation-panel">
           <span class="explanation-label">💡 Explanation</span>
           <p id="explanation-text"></p>
         </div>
 
         <div class="quiz-footer">
+          <p class="keyboard-hint">Press 1–4 to select · Enter to continue</p>
           <button class="btn-next" id="btn-next" disabled>Next →</button>
         </div>
       </main>
@@ -43,7 +56,8 @@
         <div class="results-card">
           <div class="results-icon" id="results-icon">🎉</div>
           <h2 class="results-title">Quiz Complete!</h2>
-          <p class="results-score" id="results-score">You scored 4 out of 5</p>
+          <p class="results-points" id="results-points">0 pts</p>
+          <p class="results-score" id="results-score">0 / 8 correct</p>
           <p class="results-message" id="results-message">Excellent work!</p>
           <div class="category-breakdown" id="category-breakdown"></div>
           <button class="btn-restart" id="btn-restart">Play Again</button>

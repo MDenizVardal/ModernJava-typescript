@@ -90,12 +90,21 @@ body {
   transition: width 0.4s ease;
 }
 
+.quiz-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .progress-label {
   font-size: 0.8rem;
   color: var(--clr-muted);
-  text-align: right;
-  display: block;
-  margin-top: -0.75rem;
+}
+
+.score-display {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--clr-accent-light);
 }
 
 /* Question card */
@@ -189,6 +198,70 @@ body {
   color: var(--clr-wrong);
 }
 
+/* Feedback banner */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.feedback-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--radius);
+  animation: slideDown 0.2s ease;
+}
+
+.feedback-banner.correct {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.feedback-banner.wrong {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.feedback-icon {
+  font-size: 1.3rem;
+  font-weight: 800;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.feedback-banner.correct .feedback-icon { color: var(--clr-correct); }
+.feedback-banner.wrong   .feedback-icon { color: var(--clr-wrong); }
+
+.feedback-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.feedback-verdict {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.feedback-banner.correct .feedback-verdict { color: var(--clr-correct); }
+.feedback-banner.wrong   .feedback-verdict { color: var(--clr-wrong); }
+
+.feedback-points {
+  font-size: 0.78rem;
+  color: var(--clr-muted);
+}
+
+.streak-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+}
+
 /* Explanation panel */
 .explanation-panel {
   background: rgba(99, 102, 241, 0.07);
@@ -217,7 +290,14 @@ body {
 /* Footer / Next button */
 .quiz-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.keyboard-hint {
+  font-size: 0.72rem;
+  color: var(--clr-muted);
+  opacity: 0.55;
 }
 
 .btn-next {
@@ -272,10 +352,17 @@ body {
   font-weight: 700;
 }
 
-.results-score {
-  font-size: 1.1rem;
+.results-points {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -1px;
   color: var(--clr-accent-light);
-  font-weight: 600;
+}
+
+.results-score {
+  font-size: 1rem;
+  color: var(--clr-muted);
+  font-weight: 500;
 }
 
 .results-message {

@@ -113,31 +113,44 @@ const questions = [
   },
 ];
 
-let currentIndex = 0;
-let score = 0;
-let answered = false;
-const results = []; // each entry: { questionId, selectedId, correct }
+// Points awarded per difficulty level
+const POINTS = { easy: 10, medium: 20, hard: 30 };
 
-const progressBar       = document.getElementById("progress-bar");
-const progressLabel     = document.getElementById("progress-label");
-const questionCategory  = document.getElementById("question-category");
-const difficultyBadge   = document.getElementById("difficulty-badge");
-const questionText      = document.getElementById("question-text");
-const answersGrid       = document.getElementById("answers-grid");
-const explanationPanel  = document.getElementById("explanation-panel");
-const explanationText   = document.getElementById("explanation-text");
-const btnNext           = document.getElementById("btn-next");
-const quizContainer     = document.getElementById("quiz-container");
-const resultsScreen     = document.getElementById("results-screen");
-const resultsScore      = document.getElementById("results-score");
-const resultsMessage    = document.getElementById("results-message");
-const resultsIcon       = document.getElementById("results-icon");
+let currentIndex = 0;
+let score   = 0;
+let points  = 0;
+let streak  = 0;
+let answered = false;
+const results = []; // { questionId, selectedId, correct, earned }
+
+const progressBar      = document.getElementById("progress-bar");
+const progressLabel    = document.getElementById("progress-label");
+const scoreDisplay     = document.getElementById("score-display");
+const questionCategory = document.getElementById("question-category");
+const difficultyBadge  = document.getElementById("difficulty-badge");
+const questionText     = document.getElementById("question-text");
+const answersGrid      = document.getElementById("answers-grid");
+const feedbackBanner   = document.getElementById("feedback-banner");
+const feedbackIcon     = document.getElementById("feedback-icon");
+const feedbackVerdict  = document.getElementById("feedback-verdict");
+const feedbackPoints   = document.getElementById("feedback-points");
+const streakBadge      = document.getElementById("streak-badge");
+const explanationPanel = document.getElementById("explanation-panel");
+const explanationText  = document.getElementById("explanation-text");
+const btnNext          = document.getElementById("btn-next");
+const quizContainer    = document.getElementById("quiz-container");
+const resultsScreen    = document.getElementById("results-screen");
+const resultsPts       = document.getElementById("results-points");
+const resultsScore     = document.getElementById("results-score");
+const resultsMessage   = document.getElementById("results-message");
+const resultsIcon      = document.getElementById("results-icon");
 const categoryBreakdown = document.getElementById("category-breakdown");
-const btnRestart        = document.getElementById("btn-restart");
+const btnRestart       = document.getElementById("btn-restart");
 
 function loadQuestion(index) {
   answered = false;
   btnNext.disabled = true;
+  feedbackBanner.className = "feedback-banner hidden";
   explanationPanel.classList.add("hidden");
 
   const q = questions[index];
@@ -151,7 +164,7 @@ function loadQuestion(index) {
   renderAnswers(q);
 }
 
-// Creates one button per answer object and appends it to the grid
+// Builds one button per answer object and wires its click event
 function renderAnswers(question) {
   answersGrid.innerHTML = "";
   question.answers.forEach((answer) => {
@@ -169,8 +182,12 @@ function selectAnswer(selectedBtn, selectedId, question) {
   answered = true;
 
   const isCorrect = selectedId === question.correctId;
-  results.push({ questionId: question.id, selectedId, correct: isCorrect });
-  if (isCorrect) score++;
+  const earned    = isCorrect ? POINTS[question.difficulty] : 0;
+
+  if (isCorrect) { score++; points += earned; streak++; }
+  else           { streak = 0; }
+
+  results.push({ questionId: question.id, selectedId, correct: isCorrect, earned });
 
   const allBtns = answersGrid.querySelectorAll(".answer-btn");
   allBtns.forEach((btn) => (btn.disabled = true));
@@ -181,9 +198,27 @@ function selectAnswer(selectedBtn, selectedId, question) {
     correctBtn.classList.add("correct");
   }
 
+  showFeedback(isCorrect, earned);
+  scoreDisplay.textContent = `${points} pts`;
+
   explanationText.textContent = question.explanation;
   explanationPanel.classList.remove("hidden");
   btnNext.disabled = false;
+}
+
+// Animates the feedback banner with verdict, points gained, and streak if active
+function showFeedback(isCorrect, earned) {
+  feedbackIcon.textContent    = isCorrect ? "✓" : "✗";
+  feedbackVerdict.textContent = isCorrect ? "Correct!" : "Wrong!";
+  feedbackPoints.textContent  = isCorrect ? `+${earned} pts` : "No points";
+  feedbackBanner.className    = `feedback-banner ${isCorrect ? "correct" : "wrong"}`;
+
+  if (streak >= 2) {
+    streakBadge.textContent = `🔥 ${streak}× streak`;
+    streakBadge.classList.remove("hidden");
+  } else {
+    streakBadge.classList.add("hidden");
+  }
 }
 
 function showResults() {
@@ -192,7 +227,8 @@ function showResults() {
   progressBar.style.width = "100%";
 
   const pct = Math.round((score / questions.length) * 100);
-  resultsScore.textContent = `You scored ${score} out of ${questions.length} (${pct}%)`;
+  resultsPts.textContent   = `${points} pts`;
+  resultsScore.textContent = `${score} / ${questions.length} correct (${pct}%)`;
 
   const thresholds = [
     { min: 100, icon: "🏆", message: "Perfect score! Outstanding!" },
@@ -202,32 +238,47 @@ function showResults() {
     { min: 0,   icon: "💪", message: "Better luck next time!" },
   ];
   const feedback = thresholds.find((t) => pct >= t.min);
-  resultsIcon.textContent = feedback.icon;
+  resultsIcon.textContent    = feedback.icon;
   resultsMessage.textContent = feedback.message;
 
-  // Group results by category using Array.filter() on the questions array
+  // Per-category breakdown: count correct answers and sum points earned
   const categories = [...new Set(questions.map((q) => q.category))];
   categoryBreakdown.innerHTML = "";
   categories.forEach((cat) => {
-    const catQs = questions.filter((q) => q.category === cat);
-    const catCorrect = results.filter(
-      (r) => catQs.find((q) => q.id === r.questionId) && r.correct
-    ).length;
+    const catQs      = questions.filter((q) => q.category === cat);
+    const catResults = results.filter((r) => catQs.find((q) => q.id === r.questionId));
+    const catCorrect = catResults.filter((r) => r.correct).length;
+    const catPoints  = catResults.reduce((sum, r) => sum + r.earned, 0);
     const row = document.createElement("div");
     row.className = "category-row";
-    row.innerHTML = `<span>${cat}</span><span>${catCorrect} / ${catQs.length}</span>`;
+    row.innerHTML = `<span>${cat}</span><span>${catCorrect}/${catQs.length} · ${catPoints} pts</span>`;
     categoryBreakdown.appendChild(row);
   });
 }
 
 function restart() {
   currentIndex = 0;
-  score = 0;
+  score   = 0;
+  points  = 0;
+  streak  = 0;
   results.length = 0;
+  scoreDisplay.textContent = "0 pts";
   quizContainer.classList.remove("hidden");
   resultsScreen.classList.add("hidden");
   loadQuestion(0);
 }
+
+// Keyboard: 1-4 select an answer, Enter/Space advances to next question
+document.addEventListener("keydown", (e) => {
+  if (["1", "2", "3", "4"].includes(e.key)) {
+    const btn = answersGrid.querySelectorAll(".answer-btn")[Number(e.key) - 1];
+    if (btn && !btn.disabled) btn.click();
+  }
+  if ((e.key === "Enter" || e.key === " ") && !btnNext.disabled) {
+    e.preventDefault();
+    btnNext.click();
+  }
+});
 
 btnNext.addEventListener("click", () => {
   currentIndex++;
