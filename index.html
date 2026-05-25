@@ -20,17 +20,18 @@
         <span class="progress-label" id="progress-label">Question 1 of 5</span>
 
         <section class="question-card" id="question-card">
-          <p class="question-category" id="question-category">Science</p>
-          <h2 class="question-text" id="question-text">
-            What is the chemical symbol for water?
-          </h2>
+          <div class="question-meta">
+            <p class="question-category" id="question-category"></p>
+            <span class="difficulty-badge" id="difficulty-badge"></span>
+          </div>
+          <h2 class="question-text" id="question-text"></h2>
         </section>
 
-        <div class="answers-grid" id="answers-grid">
-          <button class="answer-btn" data-index="0">H₂O</button>
-          <button class="answer-btn" data-index="1">CO₂</button>
-          <button class="answer-btn" data-index="2">NaCl</button>
-          <button class="answer-btn" data-index="3">O₂</button>
+        <div class="answers-grid" id="answers-grid"></div>
+
+        <div class="explanation-panel hidden" id="explanation-panel">
+          <span class="explanation-label">💡 Explanation</span>
+          <p id="explanation-text"></p>
         </div>
 
         <div class="quiz-footer">
@@ -44,6 +45,7 @@
           <h2 class="results-title">Quiz Complete!</h2>
           <p class="results-score" id="results-score">You scored 4 out of 5</p>
           <p class="results-message" id="results-message">Excellent work!</p>
+          <div class="category-breakdown" id="category-breakdown"></div>
           <button class="btn-restart" id="btn-restart">Play Again</button>
         </div>
       </div>
