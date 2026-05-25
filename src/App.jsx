@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { questions, POINTS } from "./data/questions";
+import WelcomeScreen from "./components/WelcomeScreen";
+import QuizScreen from "./components/QuizScreen";
+import ResultsScreen from "./components/ResultsScreen";
+
+const INITIAL_STATE = {
+  phase: "welcome",   // "welcome" | "playing" | "results"
+  currentIndex: 0,
+  score: 0,
+  points: 0,
+  streak: 0,
+  answered: false,
+  results: [],
+};
+
+export default function App() {
+  const [state, setState] = useState(INITIAL_STATE);
+
+  function startQuiz() {
+    setState({ ...INITIAL_STATE, phase: "playing" });
+  }
+
+  function selectAnswer(selectedId) {
+    if (state.answered) return;
+    const question = questions[state.currentIndex];
+    const isCorrect = selectedId === question.correctId;
+    const earned = isCorrect ? POINTS[question.difficulty] : 0;
+    setState((prev) => ({
+      ...prev,
+      answered: true,
+      score:  isCorrect ? prev.score + 1 : prev.score,
+      points: prev.points + earned,
+      streak: isCorrect ? prev.streak + 1 : 0,
+      results: [...prev.results, { questionId: question.id, selectedId, correct: isCorrect, earned }],
+    }));
+  }
+
+  function nextQuestion() {
+    const next = state.currentIndex + 1;
+    if (next < questions.length) {
+      setState((prev) => ({ ...prev, currentIndex: next, answered: false }));
+    } else {
+      setState((prev) => ({ ...prev, phase: "results" }));
+    }
+  }
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1 className="app-title">QuizMaster</h1>
+        <p className="app-subtitle">Test your knowledge</p>
+      </header>
+
+      {state.phase === "welcome" && (
+        <WelcomeScreen questions={questions} POINTS={POINTS} onStart={startQuiz} />
+      )}
+      {state.phase === "playing" && (
+        <QuizScreen
+          state={state}
+          question={questions[state.currentIndex]}
+          total={questions.length}
+          onSelectAnswer={selectAnswer}
+          onNext={nextQuestion}
+        />
+      )}
+      {state.phase === "results" && (
+        <ResultsScreen
+          state={state}
+          questions={questions}
+          onRestart={() => setState({ ...INITIAL_STATE, phase: "welcome" })}
+        />
+      )}
+    </div>
+  );
+}

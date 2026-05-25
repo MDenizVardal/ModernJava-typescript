@@ -4,89 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QuizMaster</title>
-    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app">
-      <header class="app-header">
-        <h1 class="app-title">QuizMaster</h1>
-        <p class="app-subtitle">Test your knowledge</p>
-      </header>
-
-      <div class="welcome-screen" id="welcome-screen">
-        <div class="welcome-icon">🧠</div>
-        <h2 class="welcome-title">Ready to play?</h2>
-        <p class="welcome-desc">Test yourself across 5 categories with difficulty-based scoring.</p>
-        <div class="welcome-stats">
-          <div class="stat-item">
-            <span class="stat-value">8</span>
-            <span class="stat-label">Questions</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value" id="welcome-max-pts">—</span>
-            <span class="stat-label">Max pts</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">3</span>
-            <span class="stat-label">Difficulties</span>
-          </div>
-        </div>
-        <button class="btn-start" id="btn-start">Start Quiz →</button>
-      </div>
-
-      <main class="quiz-container hidden" id="quiz-container">
-        <div class="progress-bar-wrapper">
-          <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        <div class="quiz-meta">
-          <span class="progress-label" id="progress-label">Question 1 of 8</span>
-          <span class="score-display" id="score-display">0 pts</span>
-        </div>
-
-        <section class="question-card" id="question-card">
-          <div class="question-meta">
-            <p class="question-category" id="question-category"></p>
-            <span class="difficulty-badge" id="difficulty-badge"></span>
-          </div>
-          <h2 class="question-text" id="question-text"></h2>
-        </section>
-
-        <div class="answers-grid" id="answers-grid"></div>
-
-        <div class="feedback-banner hidden" id="feedback-banner">
-          <span class="feedback-icon" id="feedback-icon"></span>
-          <div class="feedback-content">
-            <span class="feedback-verdict" id="feedback-verdict"></span>
-            <span class="feedback-points" id="feedback-points"></span>
-          </div>
-          <span class="streak-badge hidden" id="streak-badge"></span>
-        </div>
-
-        <div class="explanation-panel hidden" id="explanation-panel">
-          <span class="explanation-label">💡 Explanation</span>
-          <p id="explanation-text"></p>
-        </div>
-
-        <div class="quiz-footer">
-          <p class="keyboard-hint">Press 1–4 to select · Enter to continue</p>
-          <button class="btn-next" id="btn-next" disabled>Next →</button>
-        </div>
-      </main>
-
-      <div class="results-screen hidden" id="results-screen">
-        <div class="results-card">
-          <div class="results-icon" id="results-icon">🎉</div>
-          <h2 class="results-title">Quiz Complete!</h2>
-          <p class="results-points" id="results-points">0 pts</p>
-          <p class="results-score" id="results-score">0 / 8 correct</p>
-          <p class="results-message" id="results-message">Excellent work!</p>
-          <div class="category-breakdown" id="category-breakdown"></div>
-          <div class="question-review" id="question-review"></div>
-          <button class="btn-restart" id="btn-restart">Play Again</button>
-        </div>
-      </div>
-    </div>
-
-    <script src="quiz.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
