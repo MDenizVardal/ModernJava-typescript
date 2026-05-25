@@ -13,7 +13,28 @@
         <p class="app-subtitle">Test your knowledge</p>
       </header>
 
-      <main class="quiz-container" id="quiz-container">
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-icon">🧠</div>
+        <h2 class="welcome-title">Ready to play?</h2>
+        <p class="welcome-desc">Test yourself across 5 categories with difficulty-based scoring.</p>
+        <div class="welcome-stats">
+          <div class="stat-item">
+            <span class="stat-value">8</span>
+            <span class="stat-label">Questions</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="welcome-max-pts">—</span>
+            <span class="stat-label">Max pts</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">3</span>
+            <span class="stat-label">Difficulties</span>
+          </div>
+        </div>
+        <button class="btn-start" id="btn-start">Start Quiz →</button>
+      </div>
+
+      <main class="quiz-container hidden" id="quiz-container">
         <div class="progress-bar-wrapper">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
@@ -60,6 +81,7 @@
           <p class="results-score" id="results-score">0 / 8 correct</p>
           <p class="results-message" id="results-message">Excellent work!</p>
           <div class="category-breakdown" id="category-breakdown"></div>
+          <div class="question-review" id="question-review"></div>
           <button class="btn-restart" id="btn-restart">Play Again</button>
         </div>
       </div>

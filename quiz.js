@@ -113,16 +113,22 @@ const questions = [
   },
 ];
 
-// Points awarded per difficulty level
 const POINTS = { easy: 10, medium: 20, hard: 30 };
 
-let currentIndex = 0;
-let score   = 0;
-let points  = 0;
-let streak  = 0;
-let answered = false;
-const results = []; // { questionId, selectedId, correct, earned }
+// Single source of truth — all mutable quiz data lives here
+const state = {
+  phase: "welcome",   // "welcome" | "playing" | "results"
+  currentIndex: 0,
+  score: 0,
+  points: 0,
+  streak: 0,
+  answered: false,
+  results: [],        // { questionId, selectedId, correct, earned }
+};
 
+const welcomeScreen    = document.getElementById("welcome-screen");
+const welcomeMaxPts    = document.getElementById("welcome-max-pts");
+const btnStart         = document.getElementById("btn-start");
 const progressBar      = document.getElementById("progress-bar");
 const progressLabel    = document.getElementById("progress-label");
 const scoreDisplay     = document.getElementById("score-display");
@@ -145,21 +151,43 @@ const resultsScore     = document.getElementById("results-score");
 const resultsMessage   = document.getElementById("results-message");
 const resultsIcon      = document.getElementById("results-icon");
 const categoryBreakdown = document.getElementById("category-breakdown");
+const questionReview   = document.getElementById("question-review");
 const btnRestart       = document.getElementById("btn-restart");
 
+// Controls which screen is visible — the only place screen visibility changes
+function transitionTo(phase) {
+  state.phase = phase;
+  welcomeScreen.classList.toggle("hidden", phase !== "welcome");
+  quizContainer.classList.toggle("hidden", phase !== "playing");
+  resultsScreen.classList.toggle("hidden", phase !== "results");
+}
+
+function startQuiz() {
+  state.currentIndex = 0;
+  state.score    = 0;
+  state.points   = 0;
+  state.streak   = 0;
+  state.answered = false;
+  state.results.length = 0;
+  scoreDisplay.textContent = "0 pts";
+  progressBar.style.width  = "0%";
+  transitionTo("playing");
+  loadQuestion(0);
+}
+
 function loadQuestion(index) {
-  answered = false;
+  state.answered = false;
   btnNext.disabled = true;
   feedbackBanner.className = "feedback-banner hidden";
   explanationPanel.classList.add("hidden");
 
   const q = questions[index];
-  progressBar.style.width = `${(index / questions.length) * 100}%`;
+  progressBar.style.width  = `${(index / questions.length) * 100}%`;
   progressLabel.textContent = `Question ${index + 1} of ${questions.length}`;
   questionCategory.textContent = q.category;
-  questionText.textContent = q.text;
-  difficultyBadge.textContent = q.difficulty;
-  difficultyBadge.className = `difficulty-badge ${q.difficulty}`;
+  questionText.textContent     = q.text;
+  difficultyBadge.textContent  = q.difficulty;
+  difficultyBadge.className    = `difficulty-badge ${q.difficulty}`;
 
   renderAnswers(q);
 }
@@ -169,8 +197,8 @@ function renderAnswers(question) {
   answersGrid.innerHTML = "";
   question.answers.forEach((answer) => {
     const btn = document.createElement("button");
-    btn.className = "answer-btn";
-    btn.dataset.id = answer.id;
+    btn.className   = "answer-btn";
+    btn.dataset.id  = answer.id;
     btn.textContent = answer.text;
     btn.addEventListener("click", () => selectAnswer(btn, answer.id, question));
     answersGrid.appendChild(btn);
@@ -178,16 +206,16 @@ function renderAnswers(question) {
 }
 
 function selectAnswer(selectedBtn, selectedId, question) {
-  if (answered) return;
-  answered = true;
+  if (state.answered) return;
+  state.answered = true;
 
   const isCorrect = selectedId === question.correctId;
   const earned    = isCorrect ? POINTS[question.difficulty] : 0;
 
-  if (isCorrect) { score++; points += earned; streak++; }
-  else           { streak = 0; }
+  if (isCorrect) { state.score++; state.points += earned; state.streak++; }
+  else           { state.streak = 0; }
 
-  results.push({ questionId: question.id, selectedId, correct: isCorrect, earned });
+  state.results.push({ questionId: question.id, selectedId, correct: isCorrect, earned });
 
   const allBtns = answersGrid.querySelectorAll(".answer-btn");
   allBtns.forEach((btn) => (btn.disabled = true));
@@ -199,7 +227,7 @@ function selectAnswer(selectedBtn, selectedId, question) {
   }
 
   showFeedback(isCorrect, earned);
-  scoreDisplay.textContent = `${points} pts`;
+  scoreDisplay.textContent = `${state.points} pts`;
 
   explanationText.textContent = question.explanation;
   explanationPanel.classList.remove("hidden");
@@ -213,8 +241,8 @@ function showFeedback(isCorrect, earned) {
   feedbackPoints.textContent  = isCorrect ? `+${earned} pts` : "No points";
   feedbackBanner.className    = `feedback-banner ${isCorrect ? "correct" : "wrong"}`;
 
-  if (streak >= 2) {
-    streakBadge.textContent = `🔥 ${streak}× streak`;
+  if (state.streak >= 2) {
+    streakBadge.textContent = `🔥 ${state.streak}× streak`;
     streakBadge.classList.remove("hidden");
   } else {
     streakBadge.classList.add("hidden");
@@ -222,13 +250,13 @@ function showFeedback(isCorrect, earned) {
 }
 
 function showResults() {
-  quizContainer.classList.add("hidden");
-  resultsScreen.classList.remove("hidden");
+  transitionTo("results");
   progressBar.style.width = "100%";
 
-  const pct = Math.round((score / questions.length) * 100);
-  resultsPts.textContent   = `${points} pts`;
-  resultsScore.textContent = `${score} / ${questions.length} correct (${pct}%)`;
+  const total = questions.length;
+  const pct   = Math.round((state.score / total) * 100);
+  resultsPts.textContent   = `${state.points} pts`;
+  resultsScore.textContent = `${state.score} / ${total} correct (${pct}%)`;
 
   const thresholds = [
     { min: 100, icon: "🏆", message: "Perfect score! Outstanding!" },
@@ -241,12 +269,11 @@ function showResults() {
   resultsIcon.textContent    = feedback.icon;
   resultsMessage.textContent = feedback.message;
 
-  // Per-category breakdown: count correct answers and sum points earned
   const categories = [...new Set(questions.map((q) => q.category))];
   categoryBreakdown.innerHTML = "";
   categories.forEach((cat) => {
     const catQs      = questions.filter((q) => q.category === cat);
-    const catResults = results.filter((r) => catQs.find((q) => q.id === r.questionId));
+    const catResults = state.results.filter((r) => catQs.find((q) => q.id === r.questionId));
     const catCorrect = catResults.filter((r) => r.correct).length;
     const catPoints  = catResults.reduce((sum, r) => sum + r.earned, 0);
     const row = document.createElement("div");
@@ -254,18 +281,27 @@ function showResults() {
     row.innerHTML = `<span>${cat}</span><span>${catCorrect}/${catQs.length} · ${catPoints} pts</span>`;
     categoryBreakdown.appendChild(row);
   });
-}
 
-function restart() {
-  currentIndex = 0;
-  score   = 0;
-  points  = 0;
-  streak  = 0;
-  results.length = 0;
-  scoreDisplay.textContent = "0 pts";
-  quizContainer.classList.remove("hidden");
-  resultsScreen.classList.add("hidden");
-  loadQuestion(0);
+  // Build per-question review so the player can see exactly where they went wrong
+  questionReview.innerHTML = "";
+  state.results.forEach((result) => {
+    const q             = questions.find((q) => q.id === result.questionId);
+    const selectedAns   = q.answers.find((a) => a.id === result.selectedId);
+    const correctAns    = q.answers.find((a) => a.id === q.correctId);
+    const item          = document.createElement("div");
+    item.className      = `review-item ${result.correct ? "correct" : "wrong"}`;
+    item.innerHTML = `
+      <span class="review-icon">${result.correct ? "✓" : "✗"}</span>
+      <div class="review-body">
+        <p class="review-question">${q.text}</p>
+        ${!result.correct
+          ? `<p class="review-answer">Your answer: <strong>${selectedAns.text}</strong> · Correct: <strong>${correctAns.text}</strong></p>`
+          : ""}
+      </div>
+      <span class="review-pts">${result.correct ? `+${result.earned}` : "0"}</span>
+    `;
+    questionReview.appendChild(item);
+  });
 }
 
 // Keyboard: 1-4 select an answer, Enter/Space advances to next question
@@ -280,15 +316,21 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+btnStart.addEventListener("click", startQuiz);
+
 btnNext.addEventListener("click", () => {
-  currentIndex++;
-  if (currentIndex < questions.length) {
-    loadQuestion(currentIndex);
+  state.currentIndex++;
+  if (state.currentIndex < questions.length) {
+    loadQuestion(state.currentIndex);
   } else {
     showResults();
   }
 });
 
-btnRestart.addEventListener("click", restart);
+btnRestart.addEventListener("click", () => transitionTo("welcome"));
 
-loadQuestion(0);
+// Compute and display max achievable points on the welcome screen
+const maxPoints = questions.reduce((sum, q) => sum + POINTS[q.difficulty], 0);
+welcomeMaxPts.textContent = maxPoints;
+
+transitionTo("welcome");
