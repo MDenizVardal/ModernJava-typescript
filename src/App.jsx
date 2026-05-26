@@ -48,7 +48,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">QuizMaster</h1>
+        <h1 className="app-title">JavaScript Quiz App</h1>
         <p className="app-subtitle">Test your knowledge</p>
       </header>
 
