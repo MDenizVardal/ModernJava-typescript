@@ -14,6 +14,11 @@ export default function ResultsScreen({ state, questions, onRestart }) {
   const pct      = Math.round((score / questions.length) * 100);
   const feedback = THRESHOLDS.find((t) => pct >= t.min);
 
+  const peakMultiplier = results.reduce(
+    (max, r) => (r.correct && (r.multiplier ?? 1) > max ? (r.multiplier ?? 1) : max),
+    1
+  );
+
   return (
     <div className="results-screen">
       <div className="results-card">
@@ -23,6 +28,11 @@ export default function ResultsScreen({ state, questions, onRestart }) {
         <p className="results-score">
           {score} / {questions.length} correct ({pct}%)
         </p>
+        {peakMultiplier > 1 && (
+          <p className="results-peak-combo">
+            ⚡ Peak combo: <strong>{peakMultiplier}×</strong>
+          </p>
+        )}
         <p className="results-message">{feedback.message}</p>
 
         <CategoryBreakdown questions={questions} results={results} />

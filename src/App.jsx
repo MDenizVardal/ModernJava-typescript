@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { questions, POINTS } from "./data/questions";
+import { getMultiplier } from "./utils/scoring";
 import WelcomeScreen from "./components/WelcomeScreen";
 import QuizScreen from "./components/QuizScreen";
 import ResultsScreen from "./components/ResultsScreen";
@@ -23,16 +24,17 @@ export default function App() {
 
   function selectAnswer(selectedId) {
     if (state.answered) return;
-    const question = questions[state.currentIndex];
-    const isCorrect = selectedId === question.correctId;
-    const earned = isCorrect ? POINTS[question.difficulty] : 0;
+    const question   = questions[state.currentIndex];
+    const isCorrect  = selectedId === question.correctId;
+    const multiplier = getMultiplier(state.streak);
+    const earned     = isCorrect ? Math.round(POINTS[question.difficulty] * multiplier) : 0;
     setState((prev) => ({
       ...prev,
       answered: true,
       score:  isCorrect ? prev.score + 1 : prev.score,
       points: prev.points + earned,
       streak: isCorrect ? prev.streak + 1 : 0,
-      results: [...prev.results, { questionId: question.id, selectedId, correct: isCorrect, earned }],
+      results: [...prev.results, { questionId: question.id, selectedId, correct: isCorrect, earned, multiplier }],
     }));
   }
 

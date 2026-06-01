@@ -1,4 +1,6 @@
-export default function ProgressBar({ current, total, points }) {
+import MultiplierBadge from "./MultiplierBadge";
+
+export default function ProgressBar({ current, total, points, streak }) {
   const pct = Math.round((current / total) * 100);
 
   return (
@@ -10,6 +12,7 @@ export default function ProgressBar({ current, total, points }) {
         <span className="progress-label">
           Question {current + 1} of {total}
         </span>
+        <MultiplierBadge key={streak} streak={streak} />
         <span className="score-display">{points} pts</span>
       </div>
     </>

@@ -74,6 +74,7 @@ body {
 .welcome-icon { font-size: 3rem; }
 .welcome-title { font-size: 1.5rem; font-weight: 700; }
 .welcome-desc { color: var(--clr-muted); font-size: 0.95rem; max-width: 360px; line-height: 1.6; }
+.welcome-desc strong { color: var(--clr-text); }
 
 .welcome-stats {
   display: flex;
@@ -130,6 +131,78 @@ body {
 .quiz-meta { display: flex; justify-content: space-between; align-items: center; }
 .progress-label { font-size: 0.8rem; color: var(--clr-muted); }
 .score-display { font-size: 0.875rem; font-weight: 700; color: var(--clr-accent-light); }
+
+/* Multiplier Badge */
+@keyframes mult-pop {
+  0%   { transform: scale(0.75); opacity: 0.5; }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes mult-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50%       { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+.multiplier-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  animation: mult-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: default;
+  user-select: none;
+}
+
+.multiplier-badge.mult-base {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--clr-muted);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.multiplier-badge.mult-low {
+  background: rgba(6, 182, 212, 0.12);
+  color: #06b6d4;
+  border: 1px solid rgba(6, 182, 212, 0.25);
+}
+
+.multiplier-badge.mult-mid {
+  background: rgba(234, 179, 8, 0.12);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.multiplier-badge.mult-high {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.45);
+}
+
+.multiplier-badge.mult-max {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.55);
+  animation: mult-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+             mult-pulse 1.8s ease-in-out 0.35s infinite;
+}
+
+.mult-icon { font-size: 0.75rem; }
+.mult-value { }
+
+/* Peak combo on results */
+.results-peak-combo {
+  font-size: 0.9rem;
+  color: var(--clr-muted);
+}
+.results-peak-combo strong {
+  color: #f97316;
+}
 
 /* Question card */
 .question-card {

@@ -27,7 +27,7 @@ export default function QuizScreen({ state, question, total, onSelectAnswer, onN
 
   return (
     <main className="quiz-container">
-      <ProgressBar current={currentIndex} total={total} points={points} />
+      <ProgressBar current={currentIndex} total={total} points={points} streak={streak} />
 
       <QuestionCard question={question} />
 
@@ -43,6 +43,7 @@ export default function QuizScreen({ state, question, total, onSelectAnswer, onN
         visible={answered}
         isCorrect={lastResult?.correct ?? false}
         earned={lastResult?.earned ?? 0}
+        multiplier={lastResult?.multiplier ?? 1}
         streak={streak}
       />
 
