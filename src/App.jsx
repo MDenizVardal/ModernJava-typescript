@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { questions, POINTS } from "./data/questions";
+import { questions as defaultQuestions, POINTS } from "./data/questions";
 import { getMultiplier } from "./utils/scoring";
 import WelcomeScreen from "./components/WelcomeScreen";
 import QuizScreen from "./components/QuizScreen";
@@ -16,7 +16,11 @@ const INITIAL_STATE = {
 };
 
 export default function App() {
-  const [state, setState] = useState(INITIAL_STATE);
+  const [state, setState]               = useState(INITIAL_STATE);
+  // Kept outside INITIAL_STATE so custom questions survive "Play Again" restarts.
+  const [customQuestions, setCustomQuestions] = useState(null);
+
+  const activeQuestions = customQuestions ?? defaultQuestions;
 
   function startQuiz() {
     setState({ ...INITIAL_STATE, phase: "playing" });
@@ -24,7 +28,7 @@ export default function App() {
 
   function selectAnswer(selectedId) {
     if (state.answered) return;
-    const question   = questions[state.currentIndex];
+    const question   = activeQuestions[state.currentIndex];
     const isCorrect  = selectedId === question.correctId;
     const multiplier = getMultiplier(state.streak);
     const earned     = isCorrect ? Math.round(POINTS[question.difficulty] * multiplier) : 0;
@@ -40,7 +44,7 @@ export default function App() {
 
   function nextQuestion() {
     const next = state.currentIndex + 1;
-    if (next < questions.length) {
+    if (next < activeQuestions.length) {
       setState((prev) => ({ ...prev, currentIndex: next, answered: false }));
     } else {
       setState((prev) => ({ ...prev, phase: "results" }));
@@ -55,13 +59,19 @@ export default function App() {
       </header>
 
       {state.phase === "welcome" && (
-        <WelcomeScreen questions={questions} POINTS={POINTS} onStart={startQuiz} />
+        <WelcomeScreen
+          questions={activeQuestions}
+          POINTS={POINTS}
+          onStart={startQuiz}
+          onQuestionsLoaded={setCustomQuestions}
+          isCustom={customQuestions !== null}
+        />
       )}
       {state.phase === "playing" && (
         <QuizScreen
           state={state}
-          question={questions[state.currentIndex]}
-          total={questions.length}
+          question={activeQuestions[state.currentIndex]}
+          total={activeQuestions.length}
           onSelectAnswer={selectAnswer}
           onNext={nextQuestion}
         />
@@ -69,7 +79,7 @@ export default function App() {
       {state.phase === "results" && (
         <ResultsScreen
           state={state}
-          questions={questions}
+          questions={activeQuestions}
           onRestart={() => setState({ ...INITIAL_STATE, phase: "welcome" })}
         />
       )}
