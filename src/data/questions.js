@@ -1,5 +1,15 @@
+// POINTS maps each difficulty level to a base score value.
+// These are the raw points BEFORE the combo multiplier is applied.
 export const POINTS = { easy: 10, medium: 20, hard: 30 };
 
+// Each question object must have:
+//   id         – unique number used to match results back to questions
+//   category   – displayed on the question card and in the results breakdown
+//   difficulty – "easy" | "medium" | "hard" (controls base points)
+//   text       – the question shown to the user
+//   answers    – array of { id, text } objects (2–4 items)
+//   correctId  – must match one of the answer ids
+//   explanation– shown after the user answers
 export const questions = [
   {
     id: 1,

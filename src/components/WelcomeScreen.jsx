@@ -1,19 +1,28 @@
+// WelcomeScreen.jsx – the entry screen shown before the quiz starts.
+// It also hosts the optional QuestionLoader panel.
 import { useState, useMemo } from "react";
 import QuestionLoader from "./QuestionLoader";
 
 export default function WelcomeScreen({ questions, POINTS, onStart, onQuestionsLoaded, isCustom }) {
+  // Controls whether the QuestionLoader panel is expanded or hidden.
   const [showLoader, setShowLoader] = useState(false);
 
+  // Sum up base points across all questions.
+  // useMemo avoids recalculating on every render – only recalculates when
+  // questions or POINTS change (e.g. after loading custom questions).
   const maxBase = useMemo(
     () => questions.reduce((sum, q) => sum + POINTS[q.difficulty], 0),
     [questions, POINTS]
   );
 
+  // Called by QuestionLoader once questions have been validated.
+  // Passes them up to App and collapses the loader panel.
   function handleLoaded(qs) {
     onQuestionsLoaded(qs);
     setShowLoader(false);
   }
 
+  // Clears custom questions and returns to the built-in set.
   function resetToDefaults() {
     onQuestionsLoaded(null);
     setShowLoader(false);
@@ -28,6 +37,7 @@ export default function WelcomeScreen({ questions, POINTS, onStart, onQuestionsL
         a <strong>combo multiplier</strong> and earn up to <strong>3×</strong> points!
       </p>
 
+      {/* Only shown when the user has loaded their own questions */}
       {isCustom && (
         <div className="custom-badge">
           ✓ Custom questions active
@@ -37,6 +47,7 @@ export default function WelcomeScreen({ questions, POINTS, onStart, onQuestionsL
         </div>
       )}
 
+      {/* Stats reflect whichever question set is currently active */}
       <div className="welcome-stats">
         <div className="stat-item">
           <span className="stat-value">{questions.length}</span>
@@ -56,8 +67,10 @@ export default function WelcomeScreen({ questions, POINTS, onStart, onQuestionsL
         Start Quiz →
       </button>
 
+      {/* Visual separator between the primary action and the secondary loader option */}
       <div className="loader-divider"><span>or</span></div>
 
+      {/* Toggle the QuestionLoader panel open/closed */}
       <button
         className={`btn-load-toggle ${showLoader ? "active" : ""}`}
         onClick={() => setShowLoader(v => !v)}
@@ -65,6 +78,7 @@ export default function WelcomeScreen({ questions, POINTS, onStart, onQuestionsL
         {showLoader ? "✕ Cancel" : "📥 Load custom questions"}
       </button>
 
+      {/* Conditionally rendered – mounts when opened, unmounts when closed */}
       {showLoader && <QuestionLoader onLoad={handleLoaded} />}
     </div>
   );

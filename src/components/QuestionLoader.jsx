@@ -1,9 +1,14 @@
+// QuestionLoader.jsx – lets users supply their own questions via two async paths:
+//   1. Paste JSON directly into a textarea
+//   2. Provide a URL and fetch JSON from a remote endpoint
 import { useState } from "react";
 import { validateQuestions } from "../utils/validateQuestions";
 
-// ─── async helpers ────────────────────────────────────────────────────────────
+// ─── Async helpers ────────────────────────────────────────────────────────────
 
-/** Parses JSON text on a microtask so the function is genuinely async. */
+// Wraps JSON.parse in a Promise so the whole load flow stays async/await.
+// queueMicrotask schedules the work after the current call stack clears,
+// keeping the UI responsive and preventing a brief freeze on large inputs.
 async function parseJsonAsync(text) {
   if (!text.trim())
     throw new Error("The text area is empty — paste your JSON questions first.");
@@ -15,22 +20,27 @@ async function parseJsonAsync(text) {
   );
 }
 
-/** Fetches JSON from a URL with async/await and surfaces HTTP errors clearly. */
+// Fetches JSON from a URL.
+// Separates network errors (e.g. CORS, no internet) from HTTP status errors
+// so the user sees a useful message in both cases.
 async function fetchJson(url) {
   if (!url.trim()) throw new Error("Please enter a URL.");
   let res;
   try {
     res = await fetch(url.trim());
   } catch {
+    // fetch() itself throws only on network-level failures (no response at all).
     throw new Error("Network error — check the URL and that the server supports CORS.");
   }
+  // fetch() does NOT throw on 4xx/5xx – we check ok manually.
   if (!res.ok)
     throw new Error(`Server returned HTTP ${res.status} (${res.statusText}).`);
-  return res.json();
+  return res.json(); // parse the response body as JSON
 }
 
-// ─── Template shown in the placeholder ───────────────────────────────────────
+// ─── Template ─────────────────────────────────────────────────────────────────
 
+// Pre-filled example shown in the textarea placeholder and injected by "Use template".
 const TEMPLATE = `[
   {
     "text": "Which language runs natively in the browser?",
@@ -50,27 +60,36 @@ const TEMPLATE = `[
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function QuestionLoader({ onLoad }) {
-  const [mode,     setMode]     = useState("paste"); // "paste" | "url"
-  const [jsonText, setJsonText] = useState("");
-  const [url,      setUrl]      = useState("");
+  const [mode,     setMode]     = useState("paste"); // which tab is active
+  const [jsonText, setJsonText] = useState("");       // textarea content
+  const [url,      setUrl]      = useState("");       // URL input content
   const [status,   setStatus]   = useState(null);
-  // status shape: { kind: "loading"|"error"|"success", message?: string, count?: number }
+  // status shape: { kind: "loading" | "error" | "success", message?, count? }
 
+  // Reset status when the user switches tabs so stale errors don't linger.
   function switchMode(next) {
     setMode(next);
     setStatus(null);
   }
 
+  // Main load handler – shared by both modes.
   async function handleLoad() {
     setStatus({ kind: "loading" });
     try {
-      const raw        = mode === "paste" ? await parseJsonAsync(jsonText) : await fetchJson(url);
-      const questions  = validateQuestions(raw);
+      // Choose the right async parser depending on the active tab.
+      const raw       = mode === "paste" ? await parseJsonAsync(jsonText) : await fetchJson(url);
+      const questions = validateQuestions(raw); // throws on any schema problem
+
       setStatus({ kind: "success", count: questions.length });
-      // Brief success flash so the user sees confirmation before the panel closes.
+
+      // Small delay so the user can read the "✓ N questions loaded!" message
+      // before the panel closes automatically.
       await new Promise(r => setTimeout(r, 700));
-      onLoad(questions);
+
+      onLoad(questions); // hand validated questions up to WelcomeScreen → App
     } catch (err) {
+      // Any error from parseJsonAsync, fetchJson, or validateQuestions
+      // lands here and is shown directly to the user.
       setStatus({ kind: "error", message: err.message });
     }
   }
@@ -102,6 +121,7 @@ export default function QuestionLoader({ onLoad }) {
         <div className="loader-body">
           <div className="loader-row-header">
             <span className="loader-label">Paste a JSON array of questions:</span>
+            {/* Clicking injects the template so users can see the exact expected format. */}
             <button
               className="btn-use-template"
               onClick={() => { setJsonText(TEMPLATE); setStatus(null); }}
@@ -137,29 +157,29 @@ export default function QuestionLoader({ onLoad }) {
             placeholder="https://api.example.com/questions.json"
             value={url}
             onChange={e => { setUrl(e.target.value); setStatus(null); }}
+            // Allow pressing Enter to submit instead of clicking the button.
             onKeyDown={e => e.key === "Enter" && canSubmit && !isLoading && handleLoad()}
           />
           <p className="loader-hint">
-            The endpoint must return a JSON array and allow
-            CORS from this origin.
+            The endpoint must return a JSON array and allow CORS from this origin.
           </p>
         </div>
       )}
 
-      {/* ── Status ── */}
+      {/* ── Status feedback ── */}
       {status && (
         <div className={`loader-status ${status.kind}`} role="status">
           {status.kind === "loading" && (
             <><span className="loader-spinner" aria-hidden="true" />Fetching questions…</>
           )}
-          {status.kind === "error" && <>⚠ {status.message}</>}
+          {status.kind === "error"   && <>⚠ {status.message}</>}
           {status.kind === "success" && (
             <>✓ {status.count} question{status.count !== 1 ? "s" : ""} loaded!</>
           )}
         </div>
       )}
 
-      {/* ── Action ── */}
+      {/* ── Submit button ── */}
       <button
         className="btn-load"
         onClick={handleLoad}
